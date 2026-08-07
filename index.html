@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECANTIO - Portal Masuk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1E3A2B;
+            --secondary: #2C4D3B;
+            --accent: #D4AF37;
+            --bg: #F4F6F4;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .step-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: var(--radius);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            width: 100%;
+            max-width: 420px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .role-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 14px;
+            border-radius: var(--radius);
+            border: 1px solid var(--accent);
+            font-weight: 600;
+            font-size: 14px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 10px;
+        }
+
+        .role-btn:hover { background: var(--primary); border-color: #fff; }
+
+        .divider-text {
+            text-align: center;
+            position: relative;
+            margin: 18px 0;
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .divider-text::before, .divider-text::after {
+            content: "";
+            position: absolute;
+            top: 50%; width: 35%; height: 1px;
+            background: rgba(255,255,255,0.2);
+        }
+        .divider-text::before { left: 0; }
+        .divider-text::after { right: 0; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; margin-bottom: 5px; color: #ddd; }
+        .form-control {
+            width: 100%; padding: 12px 15px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1);
+            color: white; font-size: 14px; outline: none;
+        }
+        .form-control::placeholder { color: #aaa; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--accent); color: var(--primary); margin-top: 10px; }
+        .btn-secondary { background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+    <!-- Step 0: Pilih Role -->
+    <div class="step-card" id="step-0-role" style="text-align: center;">
+        <div style="font-size: 40px; margin-bottom: 10px;">🍃</div>
+        <h2 style="font-size: 24px; color: var(--accent); margin-bottom: 8px;">ECANTIO Store</h2>
+        <p style="font-size: 13px; color: #ccc; margin-bottom: 20px;">Selamat datang! Pilih role untuk melanjutkan.</p>
+        <button class="role-btn" onclick="selectRole('buyer')">
+            <i class="fa-solid fa-cart-shopping"></i> Masuk sebagai Pembeli
+        </button>
+        <div class="divider-text">atau</div>
+        <button class="role-btn" onclick="selectRole('seller')">
+            <i class="fa-solid fa-store"></i> Masuk sebagai Penjual
+        </button>
+    </div>
+
+    <!-- Flow Pembeli - Step 1 -->
+    <div class="step-card" id="step-1" style="display: none;">
+        <h2 style="font-size: 24px; color: var(--accent); margin-bottom: 8px;">Selamat Datang</h2>
+        <p style="font-size: 13px; color: #ccc; margin-bottom: 20px;">Masukkan email Anda untuk mulai berbelanja di ECANTIO.</p>
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="input-email" class="form-control" placeholder="nama@email.com">
+        </div>
+        <button class="btn btn-primary" onclick="nextStep(1)">Lanjut</button>
+        <button class="btn btn-secondary" onclick="backToRole()">Ganti Role</button>
+    </div>
+
+    <!-- Flow Pembeli - Step 2 -->
+    <div class="step-card" id="step-2" style="display: none;">
+        <h2 style="font-size: 24px; color: var(--accent); margin-bottom: 8px;">Buat Akun</h2>
+        <p style="font-size: 13px; color: #ccc; margin-bottom: 20px;">Atur kredensial login Anda.</p>
+        <div class="form-group">
+            <label>Username</label>
+            <input type="text" id="input-username" class="form-control" placeholder="username">
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="input-password" class="form-control" placeholder="******">
+        </div>
+        <button class="btn btn-primary" onclick="nextStep(2)">Lanjut</button>
+        <button class="btn btn-secondary" onclick="prevStep(2)">Kembali</button>
+    </div>
+
+    <!-- Flow Pembeli - Step 3 -->
+    <div class="step-card" id="step-3" style="display: none;">
+        <h2 style="font-size: 24px; color: var(--accent); margin-bottom: 8px;">Kontak</h2>
+        <p style="font-size: 13px; color: #ccc; margin-bottom: 20px;">Nomor telepon untuk pengiriman pesanan.</p>
+        <div class="form-group">
+            <label>Nomor Telepon</label>
+            <input type="tel" id="input-phone" class="form-control" placeholder="08123456789">
+        </div>
+        <button class="btn btn-primary" onclick="finishOnboarding()">Selesai & Masuk</button>
+        <button class="btn btn-secondary" onclick="prevStep(3)">Kembali</button>
+    </div>
+
+    <!-- Flow Login Penjual -->
+    <div class="step-card" id="step-seller-login" style="display: none;">
+        <h2 style="font-size: 24px; color: var(--accent); margin-bottom: 8px;">Login Penjual</h2>
+        <p style="font-size: 13px; color: #ccc; margin-bottom: 20px;">Masuk ke Portal Seller ECANTIO untuk mengelola toko.</p>
+        <div class="form-group">
+            <label>Nama Toko / Username</label>
+            <input type="text" id="seller-username" class="form-control" placeholder="Toko Official">
+        </div>
+        <div class="form-group">
+            <label>Password Seller</label>
+            <input type="password" id="seller-password" class="form-control" placeholder="******">
+        </div>
+        <button class="btn btn-primary" onclick="loginSeller()">Masuk Portal Penjual</button>
+        <button class="btn btn-secondary" onclick="backToRole()">Kembali Pilih Role</button>
+    </div>
+
+    <script>
+        let tempUser = { email: '', username: '', phone: '' };
+
+        function selectRole(role) {
+            document.getElementById('step-0-role').style.display = 'none';
+            if (role === 'buyer') {
+                document.getElementById('step-1').style.display = 'block';
+            } else {
+                document.getElementById('step-seller-login').style.display = 'block';
+            }
+        }
+
+        function backToRole() {
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-seller-login').style.display = 'none';
+            document.getElementById('step-0-role').style.display = 'block';
+        }
+
+        function nextStep(currentStep) {
+            if (currentStep === 1) {
+                const email = document.getElementById('input-email').value;
+                if (!email) return alert('Harap isi email Anda');
+                tempUser.email = email;
+                document.getElementById('step-1').style.display = 'none';
+                document.getElementById('step-2').style.display = 'block';
+            } else if (currentStep === 2) {
+                const user = document.getElementById('input-username').value;
+                const pass = document.getElementById('input-password').value;
+                if (!user || !pass) return alert('Harap isi username dan password');
+                tempUser.username = user;
+                document.getElementById('step-2').style.display = 'none';
+                document.getElementById('step-3').style.display = 'block';
+            }
+        }
+
+        function prevStep(currentStep) {
+            if (currentStep === 2) {
+                document.getElementById('step-2').style.display = 'none';
+                document.getElementById('step-1').style.display = 'block';
+            } else if (currentStep === 3) {
+                document.getElementById('step-3').style.display = 'none';
+                document.getElementById('step-2').style.display = 'block';
+            }
+        }
+
+        function finishOnboarding() {
+            const phone = document.getElementById('input-phone').value;
+            if (!phone) return alert('Harap isi nomor telepon');
+            tempUser.phone = phone;
+            tempUser.isVip = false;
+
+            localStorage.setItem('ecantio_user', JSON.stringify(tempUser));
+            window.location.href = 'beranda.html';
+        }
+
+        function loginSeller() {
+            const sUser = document.getElementById('seller-username').value;
+            const sPass = document.getElementById('seller-password').value;
+
+            if (!sUser || !sPass) return alert('Isi username & password toko');
+
+            localStorage.setItem('ecantio_seller', sUser);
+            window.location.href = 'penjual.html';
+        }
+    </script>
+</body>
+</html>
