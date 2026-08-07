@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECANTIO - Keranjang</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1E3A2B;
+            --accent: #D4AF37;
+            --bg: #F4F6F4;
+            --surface: #FFFFFF;
+            --text-dark: #1A1A1A;
+            --text-muted: #666666;
+            --border: #E2E8F0;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); padding-top: 60px; padding-bottom: 70px; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+        @media (min-width: 768px) { body { max-width: 100%; padding-top: 70px; padding-bottom: 80px; } }
+
+        header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px; background: var(--surface);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+            border-bottom: 1px solid var(--border); z-index: 1000; max-width: 480px; margin: 0 auto;
+        }
+        @media (min-width: 768px) { header { max-width: 100%; height: 70px; padding: 0 40px; } }
+
+        .brand-logo { font-size: 18px; font-weight: 700; color: var(--primary); }
+        .view { padding: 15px; }
+        @media (min-width: 768px) { .view { padding: 30px 10%; } }
+
+        .cart-item {
+            display: flex; align-items: center; gap: 10px; background: var(--surface);
+            padding: 12px; border-radius: var(--radius); margin-bottom: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .cart-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 8px; }
+        .cart-info { flex: 1; }
+        .cart-info h4 { font-size: 13px; margin-bottom: 2px; }
+        .cart-info .price { font-weight: 700; color: var(--primary); font-size: 13px; }
+
+        .summary-card { background: var(--surface); padding: 15px; border-radius: var(--radius); margin-top: 20px; }
+        .summary-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+        .summary-row.total { font-weight: 700; font-size: 15px; border-top: 1px solid var(--border); padding-top: 10px; color: var(--primary); }
+
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; background: var(--accent); color: var(--primary); margin-top: 15px; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: var(--surface); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border); max-width: 480px; margin: 0 auto; }
+        @media (min-width: 768px) { .bottom-nav { display: none !important; } }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none; font-size: 11px; }
+        .nav-item.active { color: var(--primary); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-logo">Keranjang Belanja</div>
+        <a href="beranda.html" style="color: var(--primary); text-decoration: none; font-weight: 600; font-size: 13px;">Lanjut Belanja</a>
+    </header>
+
+    <main class="view">
+        <div id="cart-items-container"></div>
+
+        <div class="summary-card">
+            <div class="summary-row"><span>Subtotal</span><span id="subtotal">Rp 0</span></div>
+            <div class="summary-row"><span>Ongkos Kirim (Flat)</span><span>Rp 20.000</span></div>
+            <div class="summary-row total"><span>Total Bayar</span><span id="total">Rp 0</span></div>
+            <button class="btn" onclick="processCheckout()">Konfirmasi & Checkout Pesanan</button>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="beranda.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Beranda</span></a>
+        <a href="keranjang.html" class="nav-item active"><i class="fa-solid fa-cart-shopping"></i><span>Keranjang</span></a>
+        <a href="pesanan.html" class="nav-item"><i class="fa-solid fa-box-archive"></i><span>Pesanan</span></a>
+        <a href="profil.html" class="nav-item"><i class="fa-solid fa-user"></i><span>Profil</span></a>
+    </nav>
+
+    <script>
+        const formatIDR = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
+
+        function renderCart() {
+            let cart = JSON.parse(localStorage.getItem('ecantio_cart')) || [];
+            const container = document.getElementById('cart-items-container');
+            container.innerHTML = '';
+
+            if (cart.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color: var(--text-muted); padding:20px;">Keranjang belanja kosong.</p>';
+                document.getElementById('subtotal').innerText = formatIDR(0);
+                document.getElementById('total').innerText = formatIDR(0);
+                return;
+            }
+
+            let subtotal = 0;
+            cart.forEach((item, index) => {
+                subtotal += item.price;
+                container.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.image}" alt="${item.name}">
+                        <div class="cart-info">
+                            <h4>${item.name}</h4>
+                            <div class="price">${formatIDR(item.price)}</div>
+                        </div>
+                        <button style="background:none; border:none; color:red; cursor:pointer;" onclick="removeItem(${index})"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                `;
+            });
+
+            document.getElementById('subtotal').innerText = formatIDR(subtotal);
+            document.getElementById('total').innerText = formatIDR(subtotal + 20000);
+        }
+
+        function removeItem(idx) {
+            let cart = JSON.parse(localStorage.getItem('ecantio_cart')) || [];
+            cart.splice(idx, 1);
+            localStorage.setItem('ecantio_cart', JSON.stringify(cart));
+            renderCart();
+        }
+
+        function processCheckout() {
+            let cart = JSON.parse(localStorage.getItem('ecantio_cart')) || [];
+            if(cart.length === 0) return alert('Keranjang belanjaan kosong!');
+
+            let orders = JSON.parse(localStorage.getItem('ecantio_orders')) || [];
+            let subtotal = cart.reduce((acc, i) => acc + i.price, 0);
+
+            const newOrder = {
+                id: '#VCZ-' + Math.floor(100000 + Math.random() * 900000),
+                items: cart,
+                total: subtotal + 20000,
+                status: 'Dikemas',
+                date: new Date().toLocaleDateString('id-ID')
+            };
+
+            orders.unshift(newOrder);
+            localStorage.setItem('ecantio_orders', JSON.stringify(orders));
+            localStorage.removeItem('ecantio_cart');
+
+            alert('Pesanan berhasil dibuat!');
+            window.location.href = 'pesanan.html';
+        }
+
+        window.onload = () => { renderCart(); };
+    </script>
+</body>
+</html>
