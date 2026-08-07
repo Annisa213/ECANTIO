@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECANTIO - Detail Produk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1E3A2B;
+            --accent: #D4AF37;
+            --bg: #F4F6F4;
+            --surface: #FFFFFF;
+            --text-dark: #1A1A1A;
+            --text-muted: #666666;
+            --border: #E2E8F0;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); padding: 20px; max-width: 600px; margin: 0 auto; min-height: 100vh; }
+
+        .btn-back {
+            background: transparent; color: var(--primary); border: 1px solid var(--border);
+            padding: 8px 14px; border-radius: 8px; font-weight: 600; font-size: 12px; cursor: pointer; margin-bottom: 15px;
+        }
+
+        .detail-img { width: 100%; height: 320px; object-fit: cover; border-radius: var(--radius); margin-bottom: 15px; }
+        
+        .variant-group { margin: 15px 0; }
+        .variant-title { font-size: 12px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted); }
+        .variant-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .chip { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; cursor: pointer; }
+        .chip.selected { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: var(--accent); color: var(--primary); }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+
+        .reviews-section { margin-top: 25px; border-top: 1px solid var(--border); padding-top: 15px; }
+        .review-card { display: flex; gap: 10px; margin-bottom: 12px; background: var(--surface); padding: 10px; border-radius: 8px; }
+        .review-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+
+        .add-review-box { background: var(--surface); padding: 12px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed var(--accent); }
+        .rating-select { display: flex; gap: 5px; margin: 8px 0; color: #ddd; cursor: pointer; }
+        .rating-select i.active { color: var(--accent); }
+        .form-control { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border); outline: none; }
+    </style>
+</head>
+<body>
+
+    <button class="btn-back" onclick="window.location.href='beranda.html'"><i class="fa-solid fa-arrow-left"></i> Kembali</button>
+
+    <img id="detail-img" class="detail-img" src="" alt="Detail Produk">
+    <h2 id="detail-title" style="font-size: 18px; margin-bottom: 5px;"></h2>
+    <div id="detail-price" style="font-size: 20px; font-weight: 700; color: var(--primary); margin-bottom: 10px;"></div>
+    <p id="detail-desc" style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 15px;"></p>
+
+    <!-- Variation Selector -->
+    <div id="variation-container"></div>
+
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button class="btn btn-outline" onclick="addCurrentToCart()">+ Keranjang</button>
+        <button class="btn btn-primary" onclick="directCheckoutFromDetail()">Beli Sekarang</button>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="reviews-section">
+        <h3 style="font-size: 16px; font-weight: 700; color: var(--primary); margin-bottom: 12px;">Ulasan Pembeli</h3>
+        <div id="add-review-container"></div>
+        <div id="reviews-list"></div>
+    </div>
+
+    <script>
+        const formatIDR = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
+        
+        let selectedProduct = null;
+        let selectedVariations = {};
+        let tempRating = 5;
+
+        window.onload = () => {
+            const selectedId = localStorage.getItem('ecantio_selected_product') || 'p1';
+            let products = JSON.parse(localStorage.getItem('ecantio_products')) || [];
+            selectedProduct = products.find(p => p.id === selectedId);
+
+            document.getElementById('detail-img').src = selectedProduct.image;
+            document.getElementById('detail-title').innerText = selectedProduct.name;
+            document.getElementById('detail-price').innerText = formatIDR(selectedProduct.price);
+            document.getElementById('detail-desc').innerText = selectedProduct.desc;
+
+            // Render Variations
+            const variationContainer = document.getElementById('variation-container');
+            variationContainer.innerHTML = '';
+
+            if (selectedProduct.variations) {
+                for (let [type, options] of Object.entries(selectedProduct.variations)) {
+                    selectedVariations[type] = options[0];
+
+                    let optionsHTML = options.map((opt, idx) => `
+                        <div class="chip ${idx === 0 ? 'selected' : ''}" onclick="selectVariation('${type}', '${opt}', this)">${opt}</div>
+                    `).join('');
+
+                    variationContainer.innerHTML += `
+                        <div class="variant-group">
+                            <div class="variant-title">Pilih ${type.toUpperCase()}</div>
+                            <div class="variant-options">${optionsHTML}</div>
+                        </div>
+                    `;
+                }
+            }
+
+            checkUserOrderHistory();
+            renderReviews();
+        };
+
+        function selectVariation(type, value, element) {
+            selectedVariations[type] = value;
+            element.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function checkUserOrderHistory() {
+            let orders = JSON.parse(localStorage.getItem('ecantio_orders')) || [];
+            let hasOrdered = orders.some(o => o.items.some(i => i.id === selectedProduct.id));
+
+            const addReviewContainer = document.getElementById('add-review-container');
+            if (hasOrdered) {
+                addReviewContainer.innerHTML = `
+                    <div class="add-review-box">
+                        <div style="font-size: 12px; font-weight: 600; color: var(--primary);">Beri Ulasan Produk Ini</div>
+                        <div class="rating-select" id="star-rating">
+                            <i class="fa-solid fa-star active" onclick="setRating(1)"></i>
+                            <i class="fa-solid fa-star active" onclick="setRating(2)"></i>
+                            <i class="fa-solid fa-star active" onclick="setRating(3)"></i>
+                            <i class="fa-solid fa-star active" onclick="setRating(4)"></i>
+                            <i class="fa-solid fa-star active" onclick="setRating(5)"></i>
+                        </div>
+                        <textarea id="review-text-input" class="form-control" style="color:var(--text-dark); background:var(--bg); margin-bottom: 8px; font-size:12px;" rows="2" placeholder="Tulis pengalaman belanja Anda..."></textarea>
+                        <button class="btn btn-primary" style="padding: 8px; font-size:12px;" onclick="submitReview()">Kirim Ulasan</button>
+                    </div>
+                `;
+            } else {
+                addReviewContainer.innerHTML = `<p style="font-size:11px; color:var(--text-muted); margin-bottom:15px; font-style:italic;">*Beli produk ini untuk dapat memberikan ulasan.</p>`;
+            }
+        }
+
+        function setRating(stars) {
+            tempRating = stars;
+            const starIcons = document.querySelectorAll('#star-rating i');
+            starIcons.forEach((icon, idx) => {
+                if (idx < stars) icon.classList.add('active');
+                else icon.classList.remove('active');
+            });
+        }
+
+        function submitReview() {
+            const text = document.getElementById('review-text-input').value.trim();
+            if (!text) return alert('Harap tulis pesan ulasan Anda');
+
+            let user = JSON.parse(localStorage.getItem('ecantio_user')) || { username: 'Pembeli ECANTIO' };
+            if (!selectedProduct.reviews) selectedProduct.reviews = [];
+            
+            selectedProduct.reviews.unshift({
+                name: user.username,
+                rating: tempRating,
+                text: text
+            });
+
+            // Update state di LocalStorage
+            let products = JSON.parse(localStorage.getItem('ecantio_products')) || [];
+            let index = products.findIndex(p => p.id === selectedProduct.id);
+            if(index > -1) {
+                products[index] = selectedProduct;
+                localStorage.setItem('ecantio_products', JSON.stringify(products));
+            }
+
+            alert('Ulasan berhasil ditambahkan!');
+            document.getElementById('review-text-input').value = '';
+            renderReviews();
+        }
+
+        function renderReviews() {
+            const reviewsList = document.getElementById('reviews-list');
+            reviewsList.innerHTML = '';
+
+            const reviews = selectedProduct.reviews || [];
+            if (reviews.length === 0) {
+                reviewsList.innerHTML = '<p style="font-size:12px; color:var(--text-muted);">Belum ada ulasan untuk produk ini.</p>';
+                return;
+            }
+
+            reviews.forEach(r => {
+                let stars = '';
+                for (let i = 0; i < 5; i++) {
+                    stars += `<i class="fa-solid fa-star" style="color: ${i < r.rating ? 'var(--accent)' : '#ccc'}"></i>`;
+                }
+
+                reviewsList.innerHTML += `
+                    <div class="review-card">
+                        <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&q=80" class="review-avatar" alt="Avatar">
+                        <div>
+                            <div style="font-size: 12px; font-weight: 600;">${r.name}</div>
+                            <div style="font-size: 10px;">${stars}</div>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">${r.text}</p>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function addCurrentToCart() {
+            let cart = JSON.parse(localStorage.getItem('ecantio_cart')) || [];
+            const existingIndex = cart.findIndex(item => item.id === selectedProduct.id && JSON.stringify(item.variations) === JSON.stringify(selectedVariations));
+
+            if (existingIndex > -1) {
+                cart[existingIndex].qty += 1;
+            } else {
+                cart.push({ ...selectedProduct, variations: { ...selectedVariations }, qty: 1, selected: true });
+            }
+
+            localStorage.setItem('ecantio_cart', JSON.stringify(cart));
+            alert('Ditambahkan ke keranjang!');
+        }
+
+        function directCheckoutFromDetail() {
+            addCurrentToCart();
+            window.location.href = 'keranjang.html';
+        }
+    </script>
+</body>
+</html>
