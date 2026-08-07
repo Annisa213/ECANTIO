@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECANTIO - Detail Produk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1E3A2B;
+            --accent: #D4AF37;
+            --bg: #F4F6F4;
+            --surface: #FFFFFF;
+            --text-dark: #1A1A1A;
+            --text-muted: #666666;
+            --border: #E2E8F0;
+            --radius: 12px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); padding: 20px; max-width: 600px; margin: 0 auto; }
+        .detail-img { width: 100%; height: 300px; object-fit: cover; border-radius: var(--radius); margin-bottom: 15px; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: var(--accent); color: var(--primary); }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .reviews-section { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px; }
+        .review-card { display: flex; gap: 10px; margin-bottom: 12px; background: var(--surface); padding: 10px; border-radius: 8px; }
+        .review-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    <button onclick="window.location.href='beranda.html'" style="background:none; border:none; color:var(--primary); font-weight:bold; cursor:pointer; margin-bottom:15px;">
+        <i class="fa-solid fa-arrow-left"></i> Kembali Ke Beranda
+    </button>
+
+    <img id="d-img" class="detail-img" src="" alt="Produk">
+    <h2 id="d-title" style="font-size: 20px; margin-bottom: 5px;"></h2>
+    <div id="d-price" style="font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 10px;"></div>
+    <p id="d-desc" style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 20px;"></p>
+
+    <div style="display: flex; gap: 10px;">
+        <button class="btn btn-outline" onclick="addCurrentCart()">+ Keranjang</button>
+        <button class="btn btn-primary" onclick="buyCurrent()">Beli Sekarang</button>
+    </div>
+
+    <div class="reviews-section">
+        <h3 style="font-size:16px; color:var(--primary); margin-bottom:10px;">Ulasan Pembeli</h3>
+        <div id="reviews-list">
+            <div class="review-card">
+                <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100" class="review-avatar" alt="Avatar">
+                <div>
+                    <div style="font-size: 12px; font-weight: 600;">Ahmad Rizky</div>
+                    <div style="color:var(--accent); font-size:10px;"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">Kualitas luar biasa! Sangat eksklusif.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const products = [
+            { id: 'p1', name: 'Jam Tangan Chronograph Elegan', price: 1850000, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500', desc: 'Jam tangan chronograph klasik dengan rantai stainless steel premium dan dial tahan gores.' },
+            { id: 'p2', name: 'Tas Kulit Tote Aesthetic', price: 890000, image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500', desc: 'Tas tote kulit asli berdesain minimalis dan lapang, cocok untuk aktivitas harian.' },
+            { id: 'p3', name: 'Kemeja Katun Classic Fit', price: 450000, image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500', desc: 'Kemeja klasik berbahan katun pima breathable, sangat nyaman.' },
+            { id: 'p4', name: 'Tumbler Stainless Minimalis', price: 220000, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500', desc: 'Tumbler vakum tahan panas dan dingin hingga 12 jam.' },
+            { id: 'p5', name: 'Buku Jurnal Cover Kulit', price: 150000, image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500', desc: 'Buku catatan bersampul kulit buatan berkualitas.' },
+            { id: 'p6', name: 'Lemari Kayu Jati Minimalis', price: 3450000, image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=500', desc: 'Lemari pakaian kayu jati kokoh dengan finishing halus.' },
+            { id: 'p7', name: 'Laptop Simple Minimalis', price: 7250000, image: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=500', desc: 'Laptop berperforma tinggi dengan desain elegan.' },
+            { id: 'p8', name: 'Sepatu Loafers Classic Leather', price: 1250000, image: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=500', desc: 'Sepatu loafers berbahan kulit asli dengan jahitan rapi.' }
+        ];
+
+        const formatIDR = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
+        let currentProd = null;
+
+        window.onload = () => {
+            const selectedId = localStorage.getItem('ecantio_selected_product') || 'p1';
+            currentProd = products.find(p => p.id === selectedId);
+
+            document.getElementById('d-img').src = currentProd.image;
+            document.getElementById('d-title').innerText = currentProd.name;
+            document.getElementById('d-price').innerText = formatIDR(currentProd.price);
+            document.getElementById('d-desc').innerText = currentProd.desc;
+        };
+
+        function addCurrentCart() {
+            let cart = JSON.parse(localStorage.getItem('ecantio_cart')) || [];
+            cart.push({ ...currentProd, qty: 1 });
+            localStorage.setItem('ecantio_cart', JSON.stringify(cart));
+            alert('Berhasil ditambah ke keranjang!');
+        }
+
+        function buyCurrent() {
+            addCurrentCart();
+            window.location.href = 'keranjang.html';
+        }
+    </script>
+</body>
+</html>
