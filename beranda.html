@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECANTIO - Premium E-Commerce</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1E3A2B;
+            --secondary: #2C4D3B;
+            --accent: #D4AF37;
+            --bg: #F4F6F4;
+            --surface: #FFFFFF;
+            --text-dark: #1A1A1A;
+            --text-muted: #666666;
+            --border: #E2E8F0;
+            --shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-dark);
+            padding-top: 60px;
+            padding-bottom: 70px;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* DUKUNGAN DESKTOP SAMA PERSIS SEPERTI SEBELUMNYA */
+        @media (min-width: 768px) {
+            body { max-width: 100%; padding-top: 70px; padding-bottom: 80px; }
+            .bottom-nav { display: none !important; }
+            .desktop-nav { display: flex !important; gap: 20px; }
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; width: 90%; max-width: 400px; pointer-events: none;
+        }
+        .toast {
+            background: var(--primary); color: white; padding: 12px 20px; border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px;
+            font-size: 14px; font-weight: 500; border: 1px solid var(--accent); opacity: 0;
+            transform: translateY(-20px); transition: all 0.3s ease; margin-bottom: 10px;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px; background: var(--surface);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+            border-bottom: 1px solid var(--border); z-index: 1000; max-width: 480px; margin: 0 auto;
+        }
+        @media (min-width: 768px) { header { max-width: 100%; height: 70px; padding: 0 40px; } }
+
+        .brand-logo { font-size: 20px; font-weight: 700; color: var(--primary); letter-spacing: 1.5px; text-transform: uppercase; }
+        .header-actions { display: flex; gap: 15px; align-items: center; }
+        .icon-btn { background: none; border: none; font-size: 20px; color: var(--primary); cursor: pointer; position: relative; text-decoration: none; }
+        .badge {
+            position: absolute; top: -5px; right: -8px; background: var(--accent); color: var(--primary);
+            font-size: 10px; font-weight: 700; width: 18px; height: 18px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .desktop-nav { display: none; }
+        .desktop-nav a { text-decoration: none; color: var(--text-dark); font-weight: 600; font-size: 14px; }
+
+        /* Bottom Nav Mobile */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: var(--surface);
+            display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border);
+            z-index: 1000; max-width: 480px; margin: 0 auto;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none; font-size: 11px; }
+        .nav-item.active { color: var(--primary); font-weight: 600; }
+
+        .view { padding: 15px; }
+        @media (min-width: 768px) { .view { padding: 30px 10%; } }
+
+        .section-title { font-size: 16px; font-weight: 700; color: var(--primary); margin: 20px 0 12px 0; }
+
+        /* Horizontal Scroll - Bestseller */
+        .horizontal-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; }
+        .horizontal-scroll::-webkit-scrollbar { display: none; }
+        .card-mini { min-width: 160px; max-width: 160px; background: var(--surface); border-radius: var(--radius); padding: 10px; box-shadow: var(--shadow); flex-shrink: 0; cursor: pointer; }
+        .card-mini img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
+
+        /* Grid Collection */
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; } }
+
+        .product-card { background: var(--surface); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; }
+        .product-card img { width: 100%; height: 140px; object-fit: cover; border-radius: 8px; margin-bottom: 10px; }
+        .product-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; line-height: 1.2; height: 32px; overflow: hidden; }
+        .product-price { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+        .product-meta { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
+        .card-actions { display: flex; gap: 5px; }
+        .btn-sm { padding: 8px; font-size: 11px; border-radius: 6px; flex: 1; border: none; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: var(--accent); color: var(--primary); }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+    </style>
+</head>
+<body>
+
+    <div id="toast-container"></div>
+
+    <header>
+        <div class="brand-logo">ECANTIO</div>
+        
+        <!-- Navigation Khusus Desktop -->
+        <nav class="desktop-nav">
+            <a href="beranda.html" style="color: var(--primary);">Beranda</a>
+            <a href="keranjang.html">Keranjang</a>
+            <a href="pesanan.html">Pesanan</a>
+            <a href="profil.html">Profil</a>
+        </nav>
+
+        <div class="header-actions">
+            <a href="keranjang.html" class="icon-btn">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span class="badge" id="cart-badge">0</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="view">
+        <div class="section-title">Koleksi Bestseller</div>
+        <div class="horizontal-scroll" id="bestseller-list"></div>
+
+        <div class="section-title">Koleksi Pilihan</div>
+        <div class="product-grid" id="main-product-grid"></div>
+    </main>
+
+    <!-- Navigation Khusus Mobile -->
+    <nav class="bottom-nav">
+        <a href="beranda.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>Beranda</span></a>
+        <a href="keranjang.html" class="nav-item"><i class="fa-solid fa-cart-shopping"></i><span>Keranjang</span></a>
+        <a href="pesanan.html" class="nav-item"><i class="fa-solid fa-box-archive"></i><span>Pesanan</span></a>
+        <a href="profil.html" class="nav-item"><i class="fa-solid fa-user"></i><span>Profil</span></a>
+    </nav>
+
+    <script>
+        const products = [
+            { id: 'p1', name: 'Jam Tangan Chronograph Elegan', price: 1850000, rating: 4.9, sold: 120, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500', bestseller: true },
+            { id: 'p2', name: 'Tas Kulit Tote Aesthetic', price: 890000, rating: 4.8, sold: 95, image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500', bestseller: true },
+            { id: 'p3', name: 'Kemeja Katun Classic Fit', price: 450000, rating: 4.7, sold: 210, image: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=500', bestseller: false },
+            { id: 'p4', name: 'Tumbler Stainless Minimalis', price: 220000, rating: 4.9, sold: 340, image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500', bestseller: true },
+            { id: 'p5', name: 'Buku Jurnal Cover Kulit', price: 150000, rating: 4.8, sold: 180, image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500', bestseller: false },
+            { id: 'p6', name: 'Lemari Kayu Jati Minimalis', price: 3450000, rating: 5.0, sold: 45, image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=500', bestseller: false },
+            { id: 'p7', name: 'Laptop Simple Minimalis', price: 7250000, rating: 4.7, sold: 230, image: 'https://images.unsplash.com/photo-1541807084-5c52b6b3adef?w=500', bestseller: false },
+            { id: 'p8', name: 'Sepatu Loafers Classic Leather', price: 1250000, rating: 4.9, sold: 150, image: 'https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=500', bestseller: true }
+        ];
+
+        const formatIDR = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
+
+        function showToast(msg) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<i class="fa-solid fa-circle-check" style="color: var(--accent);"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        function updateBadge() {
+            let cart = JSON.parse(localStorage.getItem('ecantio_cart')) || [];
+            document.getElementById('cart-badge').innerText = cart.length;
+        }
+
+        window.onload = () => {
+            updateBadge();
+            const bestsellerContainer = document.getElementById('bestseller-list');
+            const mainGrid = document.getElementById('main-product-grid');
+
+            products.forEach(p => {
+                if (p.bestseller) {
+                    bestsellerContainer.innerHTML += `
+                        <div class="card-mini" onclick="openDetail('${p.id}')">
+                            <img src="${p.image}" alt="${p.name}">
+                            <div class="product-title" style="font-size:12px; margin-top:5px;">${p.name}</div>
+                            <div class="product-price" style="font-size:12px;">${formatIDR(p.price)}</div>
+                        </div>
+                    `;
+                }
+
+                mainGrid.innerHTML += `
+                    <div class="product-card" onclick="openDetail('${p.id}')">
+                        <div>
+                            <img src="${p.image}" alt="${p.name}">
+                            <div class="product-title">${p.name}</div>
+                            <div class="product-price">${formatIDR(p.price)}</div>
+                            <div class="product-meta">
+                                <span><i class="fa-solid fa-star" style="color: var(--accent)"></i> ${p.rating}</span> |
+                                <span>Terjual ${p.sold}</span>
+                            </div>
+                        </div>
+                        <div class="card-actions" onclick="event.stopPropagation()">
+                            <button class="btn-sm btn-outline" onclick="addToCart('${p.id}')">+ Keranjang</button>
+                            <button class="btn-sm btn-primary" onclick="directBuy('${p.id}')">Beli Direct</button>
+                        </div>
+                    </div>
+                `;
+            });
+        };
+
+        function openDetail(id) {
+            localStorage.setItem('ecantio_selected_product', id);
+            window.location.href = 'detail.html';
+        }
+
+        function addToCart(id) {
+            let cart = JSON.parse(localStorage.getItem('ecantio_cart')) || [];
+            const product = products.find(p => p.id === id);
+            cart.push({ ...product, qty: 1 });
+            localStorage.setItem('ecantio_cart', JSON.stringify(cart));
+            updateBadge();
+            showToast('Ditambahkan ke keranjang!');
+        }
+
+        function directBuy(id) {
+            addToCart(id);
+            window.location.href = 'keranjang.html';
+        }
+    </script>
+</body>
+</html>
