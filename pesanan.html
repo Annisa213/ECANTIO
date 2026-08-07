@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECANTIO - Profil & Pesanan</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1E3A2B;
+            --secondary: #2C4D3B;
+            --accent: #D4AF37;
+            --bg: #F4F6F4;
+            --surface: #FFFFFF;
+            --text-dark: #1A1A1A;
+            --text-muted: #666666;
+            --border: #E2E8F0;
+            --radius: 12px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg); padding-top: 60px; padding-bottom: 70px; max-width: 480px; margin: 0 auto; min-height: 100vh; }
+        @media (min-width: 768px) { body { max-width: 100%; padding-top: 70px; padding-bottom: 80px; } }
+
+        header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid var(--border); max-width: 480px; margin: 0 auto; }
+        @media (min-width: 768px) { header { max-width: 100%; height: 70px; padding: 0 40px; } }
+
+        .brand-logo { font-size: 18px; font-weight: 700; color: var(--primary); }
+        .view { padding: 15px; }
+        @media (min-width: 768px) { .view { padding: 30px 10%; } }
+
+        .profile-card { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 20px; border-radius: var(--radius); text-align: center; margin-bottom: 20px; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--accent); object-fit: cover; margin-bottom: 10px; }
+        .vip-badge-btn { background: var(--accent); color: var(--primary); font-size: 11px; font-weight: 800; padding: 6px 14px; border-radius: 15px; text-transform: uppercase; border: none; cursor: pointer; margin-top: 8px; }
+
+        .card { background: var(--surface); padding: 15px; border-radius: var(--radius); margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .btn-logout { width: 100%; padding: 12px; border: 1px solid red; color: red; background: transparent; font-weight: bold; border-radius: 8px; cursor: pointer; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: var(--surface); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid var(--border); max-width: 480px; margin: 0 auto; }
+        @media (min-width: 768px) { .bottom-nav { display: none !important; } }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none; font-size: 11px; }
+        .nav-item.active { color: var(--primary); font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand-logo">Akun & Pesanan Saya</div>
+    </header>
+
+    <main class="view">
+        <!-- Profil Card VIP -->
+        <div class="profile-card">
+            <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=300" class="profile-avatar" alt="Avatar">
+            <h3 id="u-name">User Pembeli</h3>
+            <button class="vip-badge-btn" id="vip-btn" onclick="toggleVip()"><i class="fa-solid fa-crown"></i> <span id="vip-txt">Upgrade Ke VIP Member</span></button>
+        </div>
+
+        <h3 style="font-size:15px; color:var(--primary); margin-bottom:10px;">Riwayat Pesanan</h3>
+        <div id="orders-list"></div>
+
+        <button class="btn-logout" onclick="logout()">Logout</button>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="beranda.html" class="nav-item"><i class="fa-solid fa-house"></i><span>Beranda</span></a>
+        <a href="keranjang.html" class="nav-item"><i class="fa-solid fa-cart-shopping"></i><span>Keranjang</span></a>
+        <a href="pesanan.html" class="nav-item active"><i class="fa-solid fa-box-archive"></i><span>Pesanan</span></a>
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-user"></i><span>Logout</span></a>
+    </nav>
+
+    <script>
+        const formatIDR = (price) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
+
+        window.onload = () => {
+            let userData = JSON.parse(localStorage.getItem('ecantio_user')) || { username: 'Pembeli' };
+            document.getElementById('u-name').innerText = userData.username;
+
+            renderOrders();
+        };
+
+        function renderOrders() {
+            let orders = JSON.parse(localStorage.getItem('ecantio_orders')) || [];
+            const container = document.getElementById('orders-list');
+            container.innerHTML = '';
+
+            if (orders.length === 0) {
+                container.innerHTML = '<p style="font-size:12px; color:var(--text-muted); text-align:center; padding:15px;">Belum ada pesanan aktif.</p>';
+                return;
+            }
+
+            orders.forEach(o => {
+                let itemsList = o.items.map(i => `<li style="font-size:12px;">${i.name}</li>`).join('');
+                container.innerHTML += `
+                    <div class="card">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <b style="color:var(--primary); font-size:13px;">${o.id}</b>
+                            <span style="font-size:10px; background:#EBF8FF; color:#2B6CB0; padding:2px 6px; border-radius:4px; font-weight:bold;">${o.status}</span>
+                        </div>
+                        <ul style="padding-left:15px; margin-bottom:8px;">${itemsList}</ul>
+                        <div style="font-weight:bold; font-size:13px; color:var(--primary); border-top:1px solid var(--border); padding-top:6px;">Total: ${formatIDR(o.total)}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function toggleVip() {
+            let userData = JSON.parse(localStorage.getItem('ecantio_user')) || { username: 'Pembeli' };
+            userData.isVip = !userData.isVip;
+            localStorage.setItem('ecantio_user', JSON.stringify(userData));
+
+            document.getElementById('vip-txt').innerText = userData.isVip ? 'VIP Member Aktif' : 'Upgrade Ke VIP Member';
+            alert(userData.isVip ? 'Selamat! Status VIP Member Aktif.' : 'VIP Member Dinonaktifkan.');
+        }
+
+        function logout() {
+            localStorage.removeItem('ecantio_user');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
